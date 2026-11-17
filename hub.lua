@@ -1,5 +1,5 @@
 --[[
-    j39z HUB (FULL: MENU CŨ + ESP XỊN + ANTI-BAN)
+    j39z HUB (ESP + SPEED + AURA SILENT)
     Owner: @UnknownGuy9876 | Channel: @SGCodexs
 ]]
 
@@ -13,13 +13,16 @@ local Config = {
     ESP_Enabled = true,
     ESP_MaxDistance = 1000,
     Speed_Enabled = false,
-    Speed_Value = 35
+    Speed_Value = 35,
+    Aura_Enabled = false,
+    Aura_Range = 20
 }
 
 local ActiveESP = {}
+local SpeedMenuBtn, SpeedMenuTxt
 
 -- ==========================================
--- GIAO DIỆN (MENU CŨ)
+-- GIAO DIỆN (MENU)
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "j39zMenu"
@@ -42,7 +45,6 @@ UIStroke.Color = Color3.fromRGB(0, 255, 255)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = ToggleBtn
 
--- NÚT SPEED NGOÀI MÀN HÌNH
 local SpeedToggleBtn = Instance.new("TextButton")
 SpeedToggleBtn.Parent = ScreenGui
 SpeedToggleBtn.Size = UDim2.new(0, 50, 0, 50)
@@ -61,8 +63,8 @@ SpdStroke.Parent = SpeedToggleBtn
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 250, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 250, 0, 330)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -165)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = true
@@ -98,16 +100,35 @@ local function CreateToggle(text, yPos, default, callback)
         Btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
         Btn.Text = text .. (state and " [ON]" or " [OFF]")
         callback(state)
+        
+        if text == "Speed (Slider)" then
+            Config.Speed_Enabled = state
+            if state then
+                SpeedToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 0)
+                SpdStroke.Color = Color3.fromRGB(255, 255, 0)
+                SpeedToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 0)
+            else
+                SpeedToggleBtn.TextColor3 = Color3.fromRGB(50, 50, 50)
+                SpdStroke.Color = Color3.fromRGB(50, 50, 50)
+                SpeedToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+            end
+        end
     end)
+
+    if text == "Speed (Slider)" then
+        SpeedMenuBtn = Btn
+        SpeedMenuTxt = text
+    end
 end
 
 CreateToggle("ESP (Box + Máu)", 40, Config.ESP_Enabled, function(v) Config.ESP_Enabled = v end)
-CreateToggle("Speed (Anti-Ban)", 75, Config.Speed_Enabled, function(v) Config.Speed_Enabled = v end)
+CreateToggle("Speed (Slider)", 75, Config.Speed_Enabled, function(v) Config.Speed_Enabled = v end)
+CreateToggle("Aura Silent (Tự Chém)", 110, Config.Aura_Enabled, function(v) Config.Aura_Enabled = v end)
 
 local SpeedLabel = Instance.new("TextLabel")
 SpeedLabel.Parent = MainFrame
 SpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-SpeedLabel.Position = UDim2.new(0, 10, 0, 115)
+SpeedLabel.Position = UDim2.new(0, 10, 0, 145)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Text = "Tốc độ: 35"
 SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -118,7 +139,7 @@ SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 local SliderBg = Instance.new("TextButton") 
 SliderBg.Parent = MainFrame
 SliderBg.Size = UDim2.new(1, -20, 0, 30)
-SliderBg.Position = UDim2.new(0, 10, 0, 140)
+SliderBg.Position = UDim2.new(0, 10, 0, 170)
 SliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 SliderBg.Text = ""
 SliderBg.BorderSizePixel = 0
@@ -142,6 +163,7 @@ Instance.new("UICorner", Knob).CornerRadius = UDim.new(1, 0)
 
 local draggingSpeed = false
 SliderBg.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingSpeed = true end end)
+
 UserInputService.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         if draggingSpeed then
@@ -155,7 +177,6 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingSpeed = false end end)
 
--- Kéo thả 2 nút ngoài
 local dragging1, dragInput1, dragStart1, startPos1
 local dragging2, dragInput2, dragStart2, startPos2
 ToggleBtn.InputBegan:Connect(function(input)
@@ -195,19 +216,22 @@ SpeedToggleBtn.MouseButton1Click:Connect(function()
         SpdStroke.Color = Color3.fromRGB(50, 50, 50)
         SpeedToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     end
+
+    if SpeedMenuBtn and SpeedMenuTxt then
+        SpeedMenuBtn.BackgroundColor3 = Config.Speed_Enabled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+        SpeedMenuBtn.Text = SpeedMenuTxt .. (Config.Speed_Enabled and " [ON]" or " [OFF]")
+    end
 end)
 
 -- ==========================================
--- ESP LOGIC (BILLBOARD GUI)
+-- ESP LOGIC
 -- ==========================================
 local function CreateESP(target)
     local char = target.Character
     if not char then return end
     local head = char:FindFirstChild("Head")
     if not head then return end
-
     if ActiveESP[target] then ActiveESP[target]:Destroy() end
-
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "j39zESP"
     billboard.Adornee = head
@@ -215,7 +239,6 @@ local function CreateESP(target)
     billboard.StudsOffset = Vector3.new(0, 0, 0)
     billboard.AlwaysOnTop = true
     billboard.Parent = head
-
     local box = Instance.new("Frame")
     box.Name = "Box"
     box.Size = UDim2.new(1, 0, 1, 0)
@@ -223,7 +246,6 @@ local function CreateESP(target)
     box.BorderSizePixel = 2
     box.BorderColor3 = Color3.fromRGB(0, 255, 0)
     box.Parent = billboard
-
     local text = Instance.new("TextLabel")
     text.Name = "Text"
     text.Size = UDim2.new(1, 0, 0, 20)
@@ -234,41 +256,62 @@ local function CreateESP(target)
     text.TextSize = 12
     text.Font = Enum.Font.GothamBold
     text.Parent = billboard
-
     ActiveESP[target] = billboard
 end
-
 local function RemoveESP(target)
-    if ActiveESP[target] then
-        ActiveESP[target]:Destroy()
-        ActiveESP[target] = nil
-    end
+    if ActiveESP[target] then ActiveESP[target]:Destroy(); ActiveESP[target] = nil end
 end
 
 -- ==========================================
--- MAIN LOOP (ANTI-BAN SPEED + ESP)
+-- MAIN LOOP (SPEED + AURA SILENT + ESP)
 -- ==========================================
 RunService.RenderStepped:Connect(function(dt)
-    -- SPEED ANTI-BAN LOGIC (ĐÃ GIẢM NHẸ)
+    -- SPEED
     if Config.Speed_Enabled and LocalPlayer.Character then
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
-        
         if hrp and humanoid and humanoid.MoveDirection.Magnitude > 0 then
-            -- 1. Ép WalkSpeed về 16
             humanoid.WalkSpeed = 16 
-            
-            -- 2. Hệ số nhân giảm xuống 1.2 để chạy chậm lại, không bị vọt
-            local moveDir = humanoid.MoveDirection
-            local shiftDistance = math.clamp(Config.Speed_Value, 16, 35) * dt * 1.2
-            
-            hrp.CFrame = hrp.CFrame + (moveDir * shiftDistance)
+            local shiftDistance = Config.Speed_Value * dt * 1.5 
+            hrp.CFrame = hrp.CFrame + (humanoid.MoveDirection * shiftDistance)
         end
     else
         if LocalPlayer.Character then
             local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
-            if humanoid and humanoid.WalkSpeed ~= 16 then
-                humanoid.WalkSpeed = 16
+            if humanoid and humanoid.WalkSpeed ~= 16 then humanoid.WalkSpeed = 16 end
+        end
+    end
+
+    -- AURA SILENT (TỰ CHÉM KHÔNG KHÓA CAM)
+    if Config.Aura_Enabled and LocalPlayer.Character then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        
+        if hrp and tool and tool:FindFirstChild("Handle") then
+            local params = OverlapParams.new()
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params.FilterDescendantsInstances = {LocalPlayer.Character}
+            
+            -- Quét vùng xung quanh nhân vật
+            local parts = workspace:GetPartBoundsInBox(hrp.CFrame, Vector3.new(Config.Aura_Range, Config.Aura_Range, Config.Aura_Range), params)
+            
+            for _, part in ipairs(parts) do
+                local model = part:FindFirstAncestorOfClass("Model")
+                local otherPlayer = model and Players:GetPlayerFromCharacter(model)
+                
+                if otherPlayer and otherPlayer ~= LocalPlayer then
+                    local otherHum = otherPlayer.Character and otherPlayer.Character:FindFirstChild("Humanoid")
+                    
+                    if otherHum and otherHum.Health > 0 then
+                        -- Bấm chém ngầm và bắn sát thương ảo
+                        if tool.Enabled then
+                            pcall(function()
+                                tool:Activate() 
+                                tool.Handle.Touched:Fire(part) 
+                            end)
+                        end
+                    end
+                end
             end
         end
     end
@@ -282,34 +325,22 @@ RunService.RenderStepped:Connect(function(dt)
             
             if Config.ESP_Enabled and humanoid and humanoid.Health > 0 and hrp and head then
                 local dist = (Camera.CFrame.Position - hrp.Position).Magnitude
-                
                 if dist <= Config.ESP_MaxDistance then
-                    if not ActiveESP[player] or not ActiveESP[player].Parent then
-                        CreateESP(player)
-                    end
-                    
+                    if not ActiveESP[player] or not ActiveESP[player].Parent then CreateESP(player) end
                     local esp = ActiveESP[player]
                     if esp then
                         local hpPercent = math.floor((humanoid.Health / humanoid.MaxHealth) * 100)
                         local text = esp:FindFirstChild("Text")
                         local box = esp:FindFirstChild("Box")
-                        
-                        if text then 
-                            text.Text = string.format("%s [%d%%]", player.Name, hpPercent) 
-                        end
-                        
+                        if text then text.Text = string.format("%s [%d%%]", player.Name, hpPercent) end
                         if box then
                             if hpPercent > 50 then box.BorderColor3 = Color3.fromRGB(0, 255, 0)
                             elseif hpPercent > 20 then box.BorderColor3 = Color3.fromRGB(255, 255, 0)
                             else box.BorderColor3 = Color3.fromRGB(255, 0, 0) end
                         end
                     end
-                else
-                    RemoveESP(player)
-                end
-            else
-                RemoveESP(player)
-            end
+                else RemoveESP(player) end
+            else RemoveESP(player) end
         end
     end
 end)
